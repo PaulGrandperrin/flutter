@@ -8,9 +8,11 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:ui' as ui;
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/services.dart';
 
 import 'basic.dart';
@@ -564,6 +566,18 @@ abstract class Route<T> extends _RoutePlaceholder {
       return false;
     }
     final _RouteEntry? currentRouteEntry = _navigator!._lastRouteEntryWhereOrNull(_RouteEntry.isPresentPredicate);
+    if (currentRouteEntry == null) {
+      return false;
+    }
+    return currentRouteEntry.route == this;
+  }
+
+  /// Whether this route is the second top-most route on the navigator.
+  bool get isSecondToCurrent {
+    if (_navigator == null) {
+      return false;
+    }
+    final _RouteEntry? currentRouteEntry = _navigator!._secondLastRouteEntryWhereOrNull(_RouteEntry.isPresentPredicate);
     if (currentRouteEntry == null) {
       return false;
     }
@@ -5584,23 +5598,17 @@ class NavigatorState extends State<Navigator> with TickerProviderStateMixin, Res
 
   /// Gets first route entry satisfying the predicate, or null if not found.
   _RouteEntry? _firstRouteEntryWhereOrNull(_RouteEntryPredicate test) {
-    for (final _RouteEntry element in _history) {
-      if (test(element)) {
-        return element;
-      }
-    }
-    return null;
+    return _history.firstWhereOrNull(test);
   }
 
   /// Gets last route entry satisfying the predicate, or null if not found.
   _RouteEntry? _lastRouteEntryWhereOrNull(_RouteEntryPredicate test) {
-    _RouteEntry? result;
-    for (final _RouteEntry element in _history) {
-      if (test(element)) {
-        result = element;
-      }
-    }
-    return result;
+    return _history.lastWhereOrNull(test);
+  }
+
+  /// Gets second last route entry satisfying the predicate, or null if not found.
+  _RouteEntry? _secondLastRouteEntryWhereOrNull(_RouteEntryPredicate test) {
+    throw UnimplementedError();
   }
 
   @override
